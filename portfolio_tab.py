@@ -1,9 +1,16 @@
 from random import sample
 
+import pulp
 import streamlit as st
 import pandas as pd
+from importlib_metadata import distribution
+
+from pulp import LpMaximize, LpProblem, LpVariable
+import math  # For rounding
 
 import matplotlib.pyplot as plt
+from numpy.ma.core import minimum
+
 
 class CalculatedAssetDist:
     def __init__(self, name, proportion):
@@ -13,6 +20,7 @@ class CalculatedAssetDist:
 def render():
     st.header("Portfolio")
 
+    # TODO: Proper OOP
     table = {
         "Asset": ["S&P 500", "Apple", "Microsoft", "Facebook"],
         "Expected return": [0.15, 0.2, 0.3, 0.1],
@@ -30,7 +38,27 @@ def render():
 
 def calculate_optimal_asset_dist(table):
     asset_names = table["Asset"]
-    return [ CalculatedAssetDist(asset_names[i], 25) for i in range(len(asset_names)) ]
+    expected_returns = table["Expected return"]
+    minimum_investments = table["Minimum investment"]
+    maximum_investments = table["Maximum investment"]
+
+    model = LpProblem("Total expected return", LpMaximize)
+
+    dists = [ LpVariable(asset_name, lowBound=0) for asset_name in asset_names ]
+    model += sum(dists[i] * expected_returns[i] for i in range(len(asset_names)))
+
+    for i in range(len(asset_names)):
+        minimum_investment = minimum_investments[i]
+        maximum_investment = maximum_investments[i]
+
+        model += minimum_investment <= dists[i]
+        model += maximum_investment >= dists[i]
+
+    model += sum(dist for dist in dists) == 100
+
+    model.solve()
+
+    return [ CalculatedAssetDist(dist.name, dist.value()) for dist in dists ]
 
 def display_assets_pie(assets):
 
