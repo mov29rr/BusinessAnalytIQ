@@ -1,23 +1,14 @@
+import portfolio_tab
+import account_tab
+
 import streamlit as st
-import pandas as pd
 
 st.title("AnalytIQ")
 
-products_tab, analyse_tab = st.tabs(["products", "analyse"])
+portfolio_tab_handle, account_tab_handle = st.tabs(["Portfolio", "Account"])
 
-with products_tab:
-    st.header("Products")
+with portfolio_tab_handle:
+    portfolio_tab.render()
 
-    sample_data = {
-        "Product": ["Computer A", "Computer B"],
-        "Cost": [1000, 100],
-        "Time": [4, 2],
-        "Revenue": [2000, 400]
-    }
-
-    df = pd.DataFrame(sample_data)
-
-    edited_df = st.data_editor(df, use_container_width=True)
-
-with analyse_tab:
-    st.header("Analyse")
+with account_tab_handle:
+    account_tab.render()
