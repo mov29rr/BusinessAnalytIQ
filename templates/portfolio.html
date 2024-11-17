@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block content %}
+<h1>Portfolio</h1>
+
+<table class="table editable">
+    <thead>
+        <tr>
+            <th scope="col">Asset</th>
+            <th scope="col">Expected return</th>
+            <th scope="col">Minimum investment</th>
+            <th scope="col">Maximum investment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for investment_cloud in investment_clouds %}
+        <tr>
+            <td>{{investment_cloud.asset}}</td>
+            <td>{{investment_cloud.expected_return}}</td>
+            <td>{{investment_cloud.minimum}}</td>
+            <td>{{investment_cloud.maximum}}</td>
+            <td>X</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<img src="{{ url_for('asset_dist') }}" alt="Asset distribution" />
+
+{% endblock %}
