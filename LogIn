@@ -1,0 +1,80 @@
+import pymongo
+import streamlit as st
+import os
+import account_tab
+from random import sample
+import streamlit as st
+import pandas as pd
+import pulp
+from pulp import LpMaximize, LpProblem, LpVariable
+import matplotlib.pyplot as plt
+import appMain
+
+connect = "mongodb+srv://vpillai1:tBC1rGfZm4AojHsc@hacksheffield9.hcfv6.mongodb.net/?retryWrites=true&w=majority&appName=HackSheffield9"
+# MongoDB Connection
+client = pymongo.MongoClient(connect, tls=True, tlsAllowInvalidCertificates=True)
+data = client["HackSheffield"]
+coll = data["mainData"]
+
+# Initialize session state for authentication
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+# Login logic with MongoDB
+def login(username, password):
+    # Query the database to find a matching user
+    user = coll.find_one({"Name": username, "Password": password})
+    return user is not None
+
+# Registration logic with MongoDB
+def register(username, password):
+    # Check if the username already exists
+    if coll.find_one({"Name": username}):
+        return False  # User already exists
+    # Insert new user into the database
+    coll.insert_one({"Name": username, "Password": password})
+    return True
+
+# App Logic
+if not st.session_state.authenticated:
+    st.title("Login Page")
+
+    option = st.radio("Choose an option:", ["Login", "Register"])
+
+    if option == "Login":
+        username = st.text_input("Username", key="login_username")
+        password = st.text_input("Password", type="password", key="login_password")
+        if st.button("Login"):
+            if login(username, password):
+                st.session_state.authenticated = True
+                st.success("Logged in successfully!")
+            else:
+                st.error("Invalid username or password")
+
+    elif option == "Register":
+        new_username = st.text_input("New Username", key="register_username")
+        new_password = st.text_input("New Password", type="password", key="register_password")
+        if st.button("Register"):
+            if register(new_username, new_password):
+                st.success("Account created! You can now log in.")
+            else:
+                st.error("Username already exists. Please choose another one.")
+else:
+    try:
+        def read_file():
+            with open("appMain.py") as file:
+                content = file.read()
+            return content
+
+
+        file_content = read_file()
+        exec(file_content)
+        #with open("appMain.py") as file:
+         #   exec(file.read())  # Execute the code inside appMain.py
+    except FileNotFoundError:
+        st.error("appMain.py file not found!")
+    #command = "python3 appMain.py"
+    #os.system(command)
+    #appMain.py()
+    if st.button("Logout"):
+        st.session_state.authenticated = False
