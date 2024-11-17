@@ -24,10 +24,11 @@ sanitisedER = [float(er) for er in listofRawER]
 sanitisedMin = [float(min) for min in listofRawMin]
 sanitisedMax = [float(max) for max in listofRawMax]
 
-#Counting records
-record_count = min(len(sanitisedAssets), len(sanitisedER), len(sanitisedMin), len(sanitisedMax))
 
 app = Flask(__name__)
+
+#Counting records
+record_count = min(len(sanitisedAssets), len(sanitisedER), len(sanitisedMin), len(sanitisedMax))
 
 #List of investments
 investment_clouds = []
@@ -47,6 +48,39 @@ def asset_dist():
     except NonFeasibleSolutionError:
         # TODO: Error
         pass
+
+#Drop asset document
+@app.route("/delete_investment_cloud/<int:row>") 
+def delete_row(row):
+    assetsCollection.delete_one({"asset" : investment_clouds[row].asset})
+    #Counting records
+    record_count = min(len(sanitisedAssets), len(sanitisedER), len(sanitisedMin), len(sanitisedMax))
+
+    #List of investments
+    investment_clouds = []
+
+    #Add assets from DB to list of investments
+    for i in range(record_count):
+        investment_clouds.append(InvestmentCloud(sanitisedAssets[i], sanitisedER[i], sanitisedMin[i], sanitisedMax[i]))
+        i += 1
+    print(len(investment_clouds))
+    return Response("", 200)
+
+#Create asset document
+@app.route("/create_investment_cloud/<string:asset>,<float:expected_return>,<float:minimum>,<float:maximum>") 
+def create_row(asset, expected_return, minimum, maximum):
+    assetsCollection.insert_one({"asset" : asset, "expected return" : expected_return, "minimum investment" : minimum, "maximum investment" : maximum})
+    #Counting records
+    record_count = min(len(sanitisedAssets), len(sanitisedER), len(sanitisedMin), len(sanitisedMax))
+
+    #List of investments
+    investment_clouds = []
+
+    #Add assets from DB to list of investments
+    for i in range(record_count):
+        investment_clouds.append(InvestmentCloud(sanitisedAssets[i], sanitisedER[i], sanitisedMin[i], sanitisedMax[i]))
+        i += 1
+    return Response("", 200)
 
 @app.route("/")
 def index():
